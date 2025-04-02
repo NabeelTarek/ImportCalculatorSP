@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pet Travel Eligibility Checker</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f7fa;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .form-container {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            width: 100%;
+            transition: background 0.3s;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        #results {
+            margin-top: 25px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: none;
+        }
+        .eligibility {
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .eligible {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .not-eligible {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .requirement {
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed #eee;
+        }
+        .requirement.met {
+            color: #28a745;
+        }
+        .requirement.not-met {
+            color: #dc3545;
+        }
+        .note {
+            font-size: 13px;
+            color: #6c757d;
+            margin-top: 15px;
+            font-style: italic;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Pet Travel Eligibility Checker</h1>
+    
+    <div class="form-container">
+        <div class="form-group">
+            <label for="petType">Pet Type:</label>
+            <select id="petType" onchange="toggleVaccineFields()">
+                <option value="">Select</option>
+                <option value="cat">Cat</option>
+                <option value="dog">Dog</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="dob">Date of Birth:</label>
+            <input type="date" id="dob" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="travelDate">Planned Travel Date:</label>
+            <input type="date" id="travelDate" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="gender">Gender:</label>
+            <select id="gender">
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="breed">Breed:</label>
+            <input type="text" id="breed" placeholder="Enter breed">
+        </div>
+        
+        <div class="form-group">
+            <label for="microchipDate">Microchip Insertion Date:</label>
+            <input type="date" id="microchipDate" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="rabiesDate">Rabies Vaccination Date:</label>
+            <input type="date" id="rabiesDate" required>
+        </div>
+        
+        <div id="catVaccine" class="form-group hidden">
+            <label for="tricat">Tricat Vaccine Done?</label>
+            <select id="tricat">
+                <option value="no">No</option>
+                <option value="yes">Yes</option>
+            </select>
+        </div>
+        
+        <div id="dogVaccine" class="form-group hidden">
+            <label for="dhp">DHP Vaccine Done?</label>
+            <select id="dhp">
+                <option value="no">No</option>
+                <option value="yes">Yes</option>
+            </select>
+            
+            <label for="lepto">Leptospirosis Vaccine Done?</label>
+            <select id="lepto">
+                <option value="no">No</option>
+                <option value="yes">Yes</option>
+            </select>
+        </div>
+        
+        <button onclick="checkEligibility()">Check Eligibility</button>
+    </div>
+    
+    <div id="results">
+        <div id="eligibilityStatus" class="eligibility"></div>
+        <div id="requirementsList"></div>
+        <div class="note">Note: This checker provides guidance only. Always verify with your airline and destination country's regulations.</div>
+    </div>
+
+    <script>
+        function toggleVaccineFields() {
+            const petType = document.getElementById('petType').value;
+            document.getElementById('catVaccine').classList.add('hidden');
+            document.getElementById('dogVaccine').classList.add('hidden');
+            
+            if (petType === 'cat') {
+                document.getElementById('catVaccine').classList.remove('hidden');
+            } else if (petType === 'dog') {
+                document.getElementById('dogVaccine').classList.remove('hidden');
+            }
+        }
+        
+        function checkEligibility() {
+            // Get input values
+            const petType = document.getElementById('petType').value;
+            const dob = new Date(document.getElementById('dob').value);
+            const travelDate = new Date(document.getElementById('travelDate').value);
+            const microchipDate = new Date(document.getElementById('microchipDate').value);
+            const rabiesDate = new Date(document.getElementById('rabiesDate').value);
+            const today = new Date();
+            
+            // Validate inputs
+            if (!petType) {
+                alert("Please select pet type");
+                return;
+            }
+            if (!dob || !travelDate || !microchipDate || !rabiesDate) {
+                alert("Please fill all date fields");
+                return;
+            }
+            
+            // Calculate day differences
+            const daysFromBirthToRabies = Math.floor((rabiesDate - dob) / (1000 * 60 * 60 * 24));
+            const petAgeAtTravel = Math.floor((travelDate - dob) / (1000 * 60 * 60 * 24 * 30.44)); // in months
+            const microchipBeforeRabies = microchipDate <= rabiesDate;
+            
+            // Check requirements
+            const requirements = [];
+            let isEligible = true;
+            
+            // 1. Age vs Rabies vaccine (minimum 85 days)
+            if (daysFromBirthToRabies < 85) {
+                requirements.push({
+                    text: `Rabies vaccine must be given at least 85 days after birth (currently ${daysFromBirthToRabies} days)`,
+                    met: false
+                });
+                isEligible = false;
+            } else {
+                requirements.push({
+                    text: `Rabies vaccine given ${daysFromBirthToRabies} days after birth (≥85 days required)`,
+                    met: true
+                });
+            }
+            
+            // 2. Microchip timing
+            if (!microchipBeforeRabies) {
+                requirements.push({
+                    text: "Rabies vaccine must be given AFTER microchipping (needs to be repeated)",
+                    met: false
+                });
+                isEligible = false;
+            } else {
+                requirements.push({
+                    text: "Microchip inserted before rabies vaccine (valid)",
+                    met: true
+                });
+            }
+            
+            // 3. Minimum age for travel (4 months)
+            if (petAgeAtTravel < 4) {
+                requirements.push({
+                    text: `Pet must be at least 4 months old at travel (will be ${petAgeAtTravel} months)`,
+                    met: false
+                });
+                isEligible = false;
+            } else {
+                requirements.push({
+                    text: `Pet age at travel: ${petAgeAtTravel} months (≥4 months required)`,
+                    met: true
+                });
+            }
+            
+            // 4. Species-specific vaccines
+            if (petType === 'cat') {
+                const tricat = document.getElementById('tricat').value;
+                if (tricat === 'no') {
+                    requirements.push({
+                        text: "Tricat vaccine is required for cats",
+                        met: false
+                    });
+                    isEligible = false;
+                } else {
+                    requirements.push({
+                        text: "Tricat vaccine completed",
+                        met: true
+                    });
+                }
+            } else { // dog
+                const dhp = document.getElementById('dhp').value;
+                const lepto = document.getElementById('lepto').value;
+                
+                if (dhp === 'no') {
+                    requirements.push({
+                        text: "DHP vaccine is required for dogs",
+                        met: false
+                    });
+                    isEligible = false;
+                } else {
+                    requirements.push({
+                        text: "DHP vaccine completed",
+                        met: true
+                    });
+                }
+                
+                if (lepto === 'no') {
+                    requirements.push({
+                        text: "Leptospirosis vaccine is required for dogs",
+                        met: false
+                    });
+                    isEligible = false;
+                } else {
+                    requirements.push({
+                        text: "Leptospirosis vaccine completed",
+                        met: true
+                    });
+                }
+            }
+            
+            // Display results
+            const eligibilityStatus = document.getElementById('eligibilityStatus');
+            const requirementsList = document.getElementById('requirementsList');
+            
+            if (isEligible) {
+                eligibilityStatus.textContent = "✅ ELIGIBLE FOR TRAVEL";
+                eligibilityStatus.className = "eligibility eligible";
+            } else {
+                eligibilityStatus.textContent = "❌ NOT ELIGIBLE FOR TRAVEL";
+                eligibilityStatus.className = "eligibility not-eligible";
+            }
+            
+            requirementsList.innerHTML = '';
+            requirements.forEach(req => {
+                const div = document.createElement('div');
+                div.className = `requirement ${req.met ? 'met' : 'not-met'}`;
+                div.textContent = req.text;
+                requirementsList.appendChild(div);
+            });
+            
+            document.getElementById('results').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
